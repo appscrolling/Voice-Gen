@@ -2336,13 +2336,16 @@
     pt.addEventListener('input',()=>{ try{localStorage.setItem('__jadoo_pron__',pt.value);}catch(e){} updateRequestPreview(); });
     nb.addEventListener('change',updateRequestPreview);
   })();
-  // ---- Default API key (apni marzi se yahan badal sakte hain; khali "" chor dein to koi default nahi) ----
-  const DEFAULT_API_KEY = "AQ.Ab8RN6Ke4-rrd0flq5a23GZVwXRd4STzSHM1hWr66q8E0ft0jQ";
+  // ---- Key via bookmark: open  <site>/#key=YOUR_KEY  once; the key is read, stored in the field, and removed from the address bar ----
   (function(){
     const inp=document.getElementById('apiKeyInput');
-    if(inp && !inp.value && DEFAULT_API_KEY){
-      inp.value=DEFAULT_API_KEY;
-      try{ state.apiKey=DEFAULT_API_KEY; }catch(e){}
+    const m=(location.hash||'').match(/^#key=(.+)$/);
+    if(inp && m){
+      try{
+        inp.value=decodeURIComponent(m[1]).trim();
+        inp.dispatchEvent(new Event('input'));
+        history.replaceState(null,'',location.pathname+location.search);
+      }catch(e){}
     }
   })();
 </script>
