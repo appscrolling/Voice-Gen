@@ -319,10 +319,11 @@
         <div class="flex flex-col gap-2">
           <label for="modelSelect" id="sec3ModelLabel" class="text-xs sm:text-sm font-semibold text-brand-sand">ٹی ٹی ایس ماڈل کا انتخاب:</label>
           <select id="modelSelect" class="w-full px-3 py-2.5 rounded-xl bg-brand-deep border border-brand-border text-brand-sand text-sm isolate-ltr min-h-[44px]">
-            <option value="gemini-3.1-flash-tts-preview" selected>gemini-3.1-flash-tts-preview (آفیشل ڈیفالٹ)</option>
+            <option value="gemini-3.8-flash-tts" selected>gemini-3.8-flash-tts (آفیشل ڈیفالٹ)</option>
+            <option value="gemini-3.8-flash-lite-tts">gemini-3.8-flash-lite-tts (تیز اور سستا)</option>
           </select>
           <div class="p-2.5 bg-brand-card/50 rounded-lg border border-brand-border text-[11px] text-brand-muted leading-relaxed">
-            ℹ️ <span id="sec3DeprecationText">ماڈل: <strong>gemini-3.1-flash-tts-preview</strong> (گوگل کی موجودہ ٹی ٹی ایس دستاویز کے مطابق)۔ اگر کبھی 404 آئے تو گوگل کی دستاویز میں نیا نام دیکھیں۔</span>
+            ℹ️ <span id="sec3DeprecationText">ماڈل: <strong>gemini-3.8-flash-tts</strong> بہترین معیار کے لیے، <strong>flash-lite</strong> تیز رفتار کے لیے۔ پرانا gemini-3.1-flash-tts-preview 17 نومبر 2026 کو بند ہو چکا ہے۔</span>
           </div>
         </div>
 
@@ -344,7 +345,7 @@
             />
           </div>
           <p class="text-[10px] text-brand-muted">
-            * نوٹ: آوازوں کے ساتھ دیے گئے اوصاف (جیسے Warm, Firm) ایپ کی ایڈیٹوریل وضاحت ہے، یہ رسمی صنفی درجہ بندی نہیں۔ کسٹم آواز درج کرنے سے نئی آواز کلون نہیں ہوتی۔
+            * نوٹ: آوازوں کے ساتھ دیے گئے اوصاف (جیسے Warm, Firm) ایپ کی ایڈیٹوریل وضاحت ہے، یہ رسمی صنفی درجہ بندی نہیں۔ مرد/عورت کی تقسیم غیر سرکاری ہے، سن کر تصدیق کریں۔ کسٹم آواز درج کرنے سے نئی آواز کلون نہیں ہوتی۔
           </p>
         </div>
       </div>
@@ -379,7 +380,7 @@
           class="w-full p-2.5 rounded-xl bg-brand-deep border border-brand-border text-brand-sand text-xs sm:text-sm isolate-ltr focus:border-brand-gold resize-y min-h-[60px]"
         ></textarea>
         <p class="text-[11px] text-brand-muted">
-          یہ ہدایت ہر حصے کے متن کے شروع میں لگا کر بھیجی جاتی ہے تاکہ لہجہ قدرتی رہے۔ اگر آواز ہدایت کو بھی پڑھ دے تو ہدایت مختصر کریں۔</p>
+          یہ ہدایت متن سے الگ (speech_metadata.style) بھیجی جاتی ہے، متن میں شامل نہیں ہوتی۔ گوگل کے مطابق اسے مختصر رکھیں (جیسے «پرسکون، گرم، بول چال»)، لمبی ہدایات سے آواز بدل سکتی ہے۔ آواز کی جنس style سے نہیں بدلتی، اس کے لیے آواز بدلیں۔</p>
 
         <div class="flex flex-col gap-2 mt-2 p-3 rounded-xl bg-brand-card/50 border border-brand-border">
           <label class="flex items-center gap-2 text-xs sm:text-sm text-brand-sand"><input type="checkbox" id="numToWords" checked> اعداد کو لفظوں میں بدل کر بھیجیں (۲۰۲۶ ← دو ہزار چھبیس)</label>
@@ -711,7 +712,7 @@
   <script>
     /**
      * Jadoo Voice (جادو وائس) - Core Architecture
-     * Model Targets: gemini-3.1-flash-tts-preview (default), gemini-3.8-flash-lite-tts
+     * Model Targets: gemini-3.8-flash-tts (default), gemini-3.8-flash-lite-tts
      * Schema: generateContent REST with speech_metadata.style and voiceConfig.voice
      */
 
@@ -824,7 +825,7 @@
     ];
 
     const STANDARD_AUDITION_SCRIPT = "السلام علیکم! آج ہم اردو میں اپنا پہلا وائس اوور بنا رہے ہیں۔ پہلے ایک چھوٹا سا متن آزمائیں، پھر آواز سن کر اگلا قدم اٹھائیں۔";
-    const DEFAULT_STYLE_DIRECTION = "Speak like a real person chatting calmly in natural Pakistani Urdu: relaxed conversational pace, warm friendly tone, slight pitch variation, short natural pauses at commas and longer ones at full stops. Do not sound like you are reading.";
+    const DEFAULT_STYLE_DIRECTION = "calm, warm, natural conversational Urdu";
 
     // --- Application State ---
     const state = {
@@ -832,7 +833,7 @@
       apiKey: '',
       isKeySavedOnDevice: false,
       storageSupported: false,
-      currentModel: 'gemini-3.1-flash-tts-preview',
+      currentModel: 'gemini-3.8-flash-tts',
       currentVoice: 'Kore',
       customVoice: '',
       styleDirection: DEFAULT_STYLE_DIRECTION,
@@ -1038,15 +1039,17 @@
       return Math.round((baseSeconds + pauseSeconds) * 10) / 10;
     }
 
-    // Correct Gemini TTS payload: style goes INSIDE the prompt, voice via prebuiltVoiceConfig
+    // Official Gemini API (AI Studio docs) shape for gemini-3.8 TTS:
+    // text = verbatim transcript, style in speech_metadata, voice in speechConfig.voiceConfig.voice
     function buildSpeechPayload(text, voice, style) {
-      const st = (style || '').trim().replace(/[\s.:۔]+$/, '');
-      const prompt = st ? `${st}:\n\n${text}` : text;
+      const part = { text: text };
+      const st = (style || '').trim();
+      if (st) part.speech_metadata = { style: st };
       return {
-        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        contents: [{ role: "user", parts: [part] }],
         generationConfig: {
           responseModalities: ["AUDIO"],
-          speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } } }
+          speechConfig: { voiceConfig: { voice: voice } }
         }
       };
     }
@@ -1091,13 +1094,20 @@
 
     // --- Populate 30 Prebuilt Voices into UI ---
     function populateVoices() {
+      // Gender grouping is unofficial (taken from Google's Chirp 3 HD list); confirm by listening.
+      const MALE = ['Puck','Charon','Fenrir','Orus','Enceladus','Iapetus','Umbriel','Algieba','Algenib','Rasalgethi','Alnilam','Schedar','Achird','Zubenelgenubi','Sadachbia','Sadaltager'];
       dom.voiceSelect.innerHTML = '';
-      DOCUMENTED_VOICES.forEach(v => {
-        const opt = document.createElement('option');
-        opt.value = v.id;
-        opt.textContent = `${v.id} — ${v.desc}`;
-        if (v.id === 'Kore') opt.selected = true;
-        dom.voiceSelect.appendChild(opt);
+      [['♂ مرد کی آوازیں (Male)', true], ['♀ عورت کی آوازیں (Female)', false]].forEach(([label, isMale]) => {
+        const grp = document.createElement('optgroup');
+        grp.label = label;
+        DOCUMENTED_VOICES.filter(v => MALE.includes(v.id) === isMale).forEach(v => {
+          const opt = document.createElement('option');
+          opt.value = v.id;
+          opt.textContent = `${isMale ? '♂' : '♀'} ${v.id} — ${v.desc}`;
+          if (v.id === 'Kore') opt.selected = true;
+          grp.appendChild(opt);
+        });
+        dom.voiceSelect.appendChild(grp);
       });
     }
 
@@ -2325,6 +2335,15 @@
     try{ pt.value=localStorage.getItem('__jadoo_pron__')||''; }catch(e){}
     pt.addEventListener('input',()=>{ try{localStorage.setItem('__jadoo_pron__',pt.value);}catch(e){} updateRequestPreview(); });
     nb.addEventListener('change',updateRequestPreview);
+  })();
+  // ---- Default API key (apni marzi se yahan badal sakte hain; khali "" chor dein to koi default nahi) ----
+  const DEFAULT_API_KEY = "AQ.Ab8RN6Ke4-rrd0flq5a23GZVwXRd4STzSHM1hWr66q8E0ft0jQ";
+  (function(){
+    const inp=document.getElementById('apiKeyInput');
+    if(inp && !inp.value && DEFAULT_API_KEY){
+      inp.value=DEFAULT_API_KEY;
+      try{ state.apiKey=DEFAULT_API_KEY; }catch(e){}
+    }
   })();
 </script>
 </body>
